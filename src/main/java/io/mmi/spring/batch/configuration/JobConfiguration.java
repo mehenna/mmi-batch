@@ -4,7 +4,6 @@ import org.springframework.batch.core.Job;
  * 
  */
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.repeat.RepeatStatus;
@@ -13,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableBatchProcessing
 public class JobConfiguration {
 
 	@Autowired
@@ -28,7 +26,24 @@ public class JobConfiguration {
 	@Bean
 	public Step step1() {
 		return stepBuilderFactory.get("step1").tasklet((contribution, chunkContext) -> {
-			System.out.println("hello word-2 ");
+			System.out.println("hello word- on step 1 ");
+			return RepeatStatus.FINISHED;
+		}).build();
+	}
+	
+	@Bean
+	public Step step2() {
+		return stepBuilderFactory.get("step1").tasklet((contribution, chunkContext) -> {
+			System.out.println("hello word- on step 2  ");
+			return RepeatStatus.FINISHED;
+		}).build();
+	}
+	
+	
+	@Bean
+	public Step step3() {
+		return stepBuilderFactory.get("step1").tasklet((contribution, chunkContext) -> {
+			System.out.println("hello word on step 3 ");
 			return RepeatStatus.FINISHED;
 		}).build();
 	}
@@ -38,8 +53,14 @@ public class JobConfiguration {
 	 */
 	@Bean
 	public Job helloWordJob() {
-		return jobBuilderFactory.get("helloWordJiob-1")
+		return jobBuilderFactory.get("helloWordJiob-5")
 				.start(step1())
+				.on("COMPLETED")
+				.to(step2())
+				.next(step3())
+				.on("COMPLETED")
+				.to(step1())
+				.end()
 				.build();
 		
 	}
